@@ -1,5 +1,6 @@
 import matplotlib.image as img
 import os
+import pickle
 import numpy as np
 
 
@@ -28,11 +29,24 @@ def load_data(path):
     return label_dict, X_values, y_value
 
 
-label_dict_train, X_train, y_train = load_data('./DevanagariHandwrittenCharacterDataset/Train')
-label_dict_test, X_test, y_test = load_data('./DevanagariHandwrittenCharacterDataset/Test')
-print("Training labels", label_dict_train)
-print("Testing labels", label_dict_test)
-print("shape of X_train", X_train.shape)
-print("shape of y_train", y_train.shape)
-print("shape of X_test", X_test.shape)
-print("shape of y_test", y_test.shape)
+def pickle_dump():
+    label_dict_train, X_train, y_train = load_data('./DevanagariHandwrittenCharacterDataset/Train')
+    label_dict_test, X_test, y_test = load_data('./DevanagariHandwrittenCharacterDataset/Test')
+    train_length = len(X_train)
+    test_length = len(X_test)
+    training_data = X_train.reshape(train_length,-1), y_train
+    testing_data = X_test.reshape(test_length,-1), y_test
+    data_set = [training_data, testing_data, label_dict_train]
+    with open('devanagari_data.pkl.gz', 'wb') as f:
+        pickle.dump(data_set, f)
+
+
+def load_data_pickle():
+    if not os.path.isfile('./devanagari_data.pkl.gz'):
+        pickle_dump()
+    with open('./devanagari_data.pkl.gz', 'rb') as f:
+        return pickle.load(f)
+
+
+training_data, testing_data, data_label = load_data_pickle()
+
