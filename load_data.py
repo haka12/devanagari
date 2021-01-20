@@ -26,7 +26,19 @@ def load_data(path):
         if values > 1:
             y_value = np.append(temp, y_value)
         temp = y_value
+
+    # vectorizing the y_value
+    y_value = [vectorize(int(y), len(label_dict.values())) for y in y_value]
+    y_value = np.array(y_value)
+    # removing a single dimensional value
+    y_value = np.squeeze(y_value)
     return label_dict, X_values, y_value
+
+
+def vectorize(y, l):
+    v = np.zeros((l, 1))
+    v[y-1] = 1
+    return v
 
 
 def pickle_dump():
@@ -34,8 +46,8 @@ def pickle_dump():
     label_dict_test, X_test, y_test = load_data('./DevanagariHandwrittenCharacterDataset/Test')
     train_length = len(X_train)
     test_length = len(X_test)
-    training_data = X_train.reshape(train_length,-1), y_train
-    testing_data = X_test.reshape(test_length,-1), y_test
+    training_data = X_train.reshape(train_length, -1), y_train
+    testing_data = X_test.reshape(test_length, -1), y_test
     data_set = [training_data, testing_data, label_dict_train]
     with open('devanagari_data.pkl.gz', 'wb') as f:
         pickle.dump(data_set, f)
@@ -46,7 +58,3 @@ def load_data_pickle():
         pickle_dump()
     with open('./devanagari_data.pkl.gz', 'rb') as f:
         return pickle.load(f)
-
-
-training_data, testing_data, data_label = load_data_pickle()
-
