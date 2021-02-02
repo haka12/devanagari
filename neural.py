@@ -40,6 +40,7 @@ class Neural:
     def cost_function(self, pred):
         # cross entropy cost function
         J = np.sum((np.multiply(self.y, np.log(pred))) + (np.multiply((1 - self.y), np.log(1 - pred)))) / - self.m
+        print(J)
         return J
 
     def backpropagation(self, cache, al):
@@ -57,6 +58,11 @@ class Neural:
             if l - 1 != 0:  # since z[0] doesnt exist and is not required
                 dz = np.dot(self.W[l].T, dz) * sigmoid_deri(self.z[l - 1])
         return dw, db
+
+    def update_parameter(self, alpha, dw, db):
+        for l in range(1, len(self.layers)):
+            self.W[l] = self.W[l] - alpha*dw[l]
+            self.b[l] = self.b[l] - alpha * db[l]
 
 
 def sigmoid(z):
