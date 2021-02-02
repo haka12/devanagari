@@ -1,6 +1,4 @@
 import numpy as np
-import random
-import matplotlib.pyplot as plt
 
 
 class Neural:
@@ -23,24 +21,29 @@ class Neural:
             self.W[l] = np.random.rand(self.layers[l], self.layers[l - 1]) * 0.01
             self.b[l] = np.zeros((self.layers[l], 1))
 
-    def forward_propagation(self):
+    def forward_propagation(self, *args):
+        if len(args):
+            W = args[0]
+            b = args[1]
+        else:
+            W = self.W
+            b = self.b
         cache = {}
         a = self.X
         for l in range(1, len(self.layers)):
             # z = w*a + b
-            self.z[l] = np.dot(self.W[l], a) + self.b[l]
+            self.z[l] = np.dot(W[l], a) + b[l]
             # caching for use in backpropagation
             cache[l] = a
             # activation
             a = sigmoid(self.z[l])
-            assert a.shape == (self.W[l].shape[0], a.shape[1])
+            assert a.shape == (W[l].shape[0], a.shape[1])
         assert a.shape == (self.y.shape[0], self.X.shape[1])
         return a, cache
 
     def cost_function(self, pred):
         # cross entropy cost function
         J = np.sum((np.multiply(self.y, np.log(pred))) + (np.multiply((1 - self.y), np.log(1 - pred)))) / - self.m
-        print(J)
         return J
 
     def backpropagation(self, cache, al):
@@ -61,8 +64,9 @@ class Neural:
 
     def update_parameter(self, alpha, dw, db):
         for l in range(1, len(self.layers)):
-            self.W[l] = self.W[l] - alpha*dw[l]
+            self.W[l] = self.W[l] - alpha * dw[l]
             self.b[l] = self.b[l] - alpha * db[l]
+        return self.W, self.b
 
 
 def sigmoid(z):
