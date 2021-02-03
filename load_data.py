@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 
 
+
 def load_data(path):
     images = []
     no_of_data = []

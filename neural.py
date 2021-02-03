@@ -1,27 +1,37 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Neural:
-    def __init__(self, data, hidden_layer):
+    def __init__(self, data, hidden_layer, data_label):
         # transforming data to put features as rows
         self.X = data[0].T
         self.y = data[1].T
         self.m = len(self.X[1])
+        # shuffling data
+        np.random.seed(1)
+        per = np.random.permutation(len(self.X[1]))
+        self.X = self.X[:, per]
+        self.y = self.y[:, per]
         # making a list of all layers
         self.layers = [self.X.shape[0]] + hidden_layer + [self.y.shape[0]]
-        # plt.imshow(self.train_X[:, 0].reshape(32, 32)) # checking if transformation is correct
+        # initializing w,b,z,a
         self.W = {}
         self.b = {}
         self.z = {}
+        self.a = {}
+        # print(data_label[np.argmax(self.y[:, 2])+1])
+        # plt.imshow(self.X[:, 2].reshape(32, 32))  # checking if shuffling  is correct
 
     def parameter_init(self):
-        np.random.seed(2)
+        np.random.seed(4)
         # random weight initialization with mean 0 and std deviation 0.01
         for l in range(1, len(self.layers)):
             self.W[l] = np.random.rand(self.layers[l], self.layers[l - 1]) * 0.01
             self.b[l] = np.zeros((self.layers[l], 1))
 
     def forward_propagation(self, *args):
+        # args is here for test set
         if len(args):
             W = args[0]
             b = args[1]
@@ -29,31 +39,27 @@ class Neural:
             W = self.W
             b = self.b
         cache = {}
-        a = self.X
+        self.a[0] = self.X
         for l in range(1, len(self.layers)):
             # z = w*a + b
-            self.z[l] = np.dot(W[l], a) + b[l]
-            # caching for use in backpropagation
-            cache[l] = a
+            self.z[l] = np.dot(W[l], self.a[l - 1]) + b[l]
             # activation
-            a = sigmoid(self.z[l])
-            assert a.shape == (W[l].shape[0], a.shape[1])
-        assert a.shape == (self.y.shape[0], self.X.shape[1])
-        return a, cache
+            self.a[l] = sigmoid(self.z[l])
+        assert self.a[l].shape == (self.y.shape[0], self.X.shape[1])
+        return self.a[l]
 
     def cost_function(self, pred):
         # cross entropy cost function
         J = np.sum((np.multiply(self.y, np.log(pred))) + (np.multiply((1 - self.y), np.log(1 - pred)))) / - self.m
         return J
 
-    def backpropagation(self, cache, al):
+    def backpropagation(self, al):
         dw = {}
         db = {}
         # dz for layer l
         dz = al - self.y
         for l in range(len(self.layers) - 1, 0, -1):
-            a = cache[l]
-            dw[l] = 1 / self.m * np.dot(dz, a.T)
+            dw[l] = 1 / self.m * np.dot(dz, self.a[l - 1].T)
             db[l] = 1 / self.m * np.sum(dz, axis=1, keepdims=True)
             assert dw[l].shape == self.W[l].shape
             assert db[l].shape == self.b[l].shape
