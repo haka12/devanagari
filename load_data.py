@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 
 
-
 def load_data(path):
     images = []
     no_of_data = []
@@ -38,24 +37,25 @@ def load_data(path):
 
 def vectorize(y, l):
     v = np.zeros((l, 1))
-    v[y-1] = 1
+    v[y - 1] = 1
     return v
 
 
 def pickle_dump():
-    label_dict_train, X_train, y_train = load_data('./DevanagariHandwrittenCharacterDataset/Train')
-    label_dict_test, X_test, y_test = load_data('./DevanagariHandwrittenCharacterDataset/Test')
+    label_dict_train, X_train, y_train = load_data('./Data/Train')
+    label_dict_test, X_test, y_test = load_data('./Data/Test')
     train_length = len(X_train)
     test_length = len(X_test)
     training_data = X_train.reshape(train_length, -1), y_train
     testing_data = X_test.reshape(test_length, -1), y_test
     data_set = [training_data, testing_data, label_dict_train]
-    with open('devanagari_data.pkl.gz', 'wb') as f:
+    with open('data.pkl.gz', 'wb') as f:
         pickle.dump(data_set, f)
 
 
 def load_data_pickle():
-    if not os.path.isfile('./devanagari_data.pkl.gz'):
+    if not os.path.isfile('./data.pkl.gz'):
+        print("creating serialized data ")
         pickle_dump()
-    with open('./devanagari_data.pkl.gz', 'rb') as f:
+    with open('./data.pkl.gz', 'rb') as f:
         return pickle.load(f)

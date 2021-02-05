@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class Neural:
-    def __init__(self, data, hidden_layer, data_label):
+    def __init__(self, data, hidden_layer):
         # transforming data to put features as rows
         self.X = data[0].T
         self.y = data[1].T
@@ -44,7 +44,10 @@ class Neural:
             # z = w*a + b
             self.z[l] = np.dot(W[l], self.a[l - 1]) + b[l]
             # activation
-            self.a[l] = sigmoid(self.z[l])
+            if l == len(self.layers):
+                self.a[l] = softmax(self.z[l])
+            else:
+                self.a[l] = sigmoid(self.z[l])
         assert self.a[l].shape == (self.y.shape[0], self.X.shape[1])
         return self.a[l]
 
@@ -56,23 +59,25 @@ class Neural:
     def backpropagation(self, al):
         dw = {}
         db = {}
-        # dz for layer l
+        # dz for layer l(dz is cost derivative wrt z)
         dz = al - self.y
         for l in range(len(self.layers) - 1, 0, -1):
-            dw[l] = 1 / self.m * np.dot(dz, self.a[l - 1].T)
-            db[l] = 1 / self.m * np.sum(dz, axis=1, keepdims=True)
+            # dw = cost derivative wrt w
+            dw[l] = np.dot(dz, self.a[l - 1].T) / self.m
+            db[l] = np.sum(dz, axis=1, keepdims=True) / self.m
             assert dw[l].shape == self.W[l].shape
             assert db[l].shape == self.b[l].shape
             # dz for layer l-1
             if l - 1 != 0:  # since z[0] doesnt exist and is not required
-                dz = np.dot(self.W[l].T, dz) * sigmoid_deri(self.z[l - 1])
+                _ = np.dot(self.W[l].T, dz)
+                dz = np.multiply(_, sigmoid_deri(self.z[l - 1]))
         return dw, db
 
     def update_parameter(self, alpha, dw, db):
         for l in range(1, len(self.layers)):
             self.W[l] = self.W[l] - alpha * dw[l]
             self.b[l] = self.b[l] - alpha * db[l]
-        return self.W, self.b
+        return self.W,self.b
 
 
 def sigmoid(z):
@@ -81,3 +86,6 @@ def sigmoid(z):
 
 def sigmoid_deri(z):
     return sigmoid(z) * (1 - sigmoid(z))
+
+def softmax(z):
+    return np.exp(z)/sum(np.exp(z))
