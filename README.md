@@ -1,7 +1,7 @@
 # devanagari
 devanagari character recognition using MLP from scratch
-
-Dataset is available at:
+the pickled data is small dataset of characters 0-9 for ease of use.
+whole dataset is available at:
 https://archive.ics.uci.edu/ml/datasets/Devanagari+Handwritten+Character+Dataset
 Extract the data and rename the folder as "Data" in copy it in the same folder.
 
