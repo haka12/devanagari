@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-
+import numpy as np
 from load_data import load_data_pickle
 from neural import Neural
 from test import test
@@ -13,23 +13,27 @@ def main():
 
     neural_net = Neural(training_data, hidden_layer)
     neural_net.parameter_init()
-    cost_list = []
+    # m is the number of images
+    m = len(neural_net.X[1])
 
     print("Training data........")
     for i in range(1, epochs+1):
-        # al= activation of last layer
-        al = neural_net.forward_propagation()
-        J = neural_net.cost_function(al)
-        print("The cost of epoch {} is {}".format(i,J))
-        cost_list.append(J)
-        dw, db = neural_net.backpropagation(al)
-        W, b = neural_net.update_parameter(alpha, dw, db)
-        if i % 100 == 0:
+        cost_list = []
+        for batch_no in range(int(m/batch_size)):
+            X, y = neural_net.mini_batches(batch_size, batch_no)
+            # al= activation of last layer
+            al = neural_net.forward_propagation(X,y)
+            J = neural_net.cost_function(al,y)
+            cost_list.append(J)
+            dw, db = neural_net.backpropagation(al,y)
+            W, b = neural_net.update_parameter(alpha, dw, db)
+        if i % 10 == 0:
             neural_test = test(testing_data, W, b, i)
-    # plt.plot(cost_list)
-    # plt.xlabel("epochs")
-    # plt.ylabel("cost")
-    # plt.show()
+        print("The cost of epoch {} is {}".format(i, np.sum(cost_list)))
+        # plt.plot(cost_list)
+        # plt.xlabel("epochs")
+        # plt.ylabel("cost")
+        # plt.show()
 
     return neural_net, neural_test
 

@@ -15,13 +15,18 @@ class Neural:
         self.y = self.y[:, per]
         # making a list of all layers
         self.layers = [self.X.shape[0]] + hidden_layer + [self.y.shape[0]]
-        # initializing w,b,z,a
+        # initializing w,b,z,a,mini_X, mini_y
         self.W = {}
         self.b = {}
         self.z = {}
         self.a = {}
         # print(data_label[np.argmax(self.y[:, 2])+1])
-        # plt.imshow(self.X[:, 2].reshape(32, 32))  # checking if shuffling  is correct
+
+    def mini_batches(self, batch_size, batch_no):
+        # creating mini-batches
+        mini_X = self.X[:, (batch_no - 1) * batch_size:batch_size * batch_no]
+        mini_y = self.y[:, (batch_no - 1) * batch_size:batch_size * batch_no]
+        return mini_X, mini_y
 
     def parameter_init(self):
         np.random.seed(4)
@@ -30,7 +35,7 @@ class Neural:
             self.W[l] = np.random.rand(self.layers[l], self.layers[l - 1]) * 0.01
             self.b[l] = np.zeros((self.layers[l], 1))
 
-    def forward_propagation(self, *args):
+    def forward_propagation(self, X, y, *args):
         # args is here for test set
         if len(args):
             W = args[0]
@@ -39,28 +44,28 @@ class Neural:
             W = self.W
             b = self.b
         cache = {}
-        self.a[0] = self.X
+        self.a[0] = X
         for l in range(1, len(self.layers)):
             # z = w*a + b
             self.z[l] = np.dot(W[l], self.a[l - 1]) + b[l]
-            # activation
+            # activation for last layer is softmax and other layers is sigmoid
             if l == len(self.layers):
                 self.a[l] = softmax(self.z[l])
             else:
                 self.a[l] = sigmoid(self.z[l])
-        assert self.a[l].shape == (self.y.shape[0], self.X.shape[1])
+        assert self.a[l].shape == (y.shape[0], X.shape[1])
         return self.a[l]
 
-    def cost_function(self, pred):
+    def cost_function(self, pred, y):
         # cross entropy cost function
-        J = np.sum((np.multiply(self.y, np.log(pred))) + (np.multiply((1 - self.y), np.log(1 - pred)))) / - self.m
+        J = np.sum((np.multiply(y, np.log(pred))) + (np.multiply((1 - y), np.log(1 - pred)))) / - self.m
         return J
 
-    def backpropagation(self, al):
+    def backpropagation(self, al,y):
         dw = {}
         db = {}
         # dz for layer l(dz is cost derivative wrt z)
-        dz = al - self.y
+        dz = al - y
         for l in range(len(self.layers) - 1, 0, -1):
             # dw = cost derivative wrt w
             dw[l] = np.dot(dz, self.a[l - 1].T) / self.m
@@ -77,7 +82,7 @@ class Neural:
         for l in range(1, len(self.layers)):
             self.W[l] = self.W[l] - alpha * dw[l]
             self.b[l] = self.b[l] - alpha * db[l]
-        return self.W,self.b
+        return self.W, self.b
 
 
 def sigmoid(z):
@@ -87,5 +92,6 @@ def sigmoid(z):
 def sigmoid_deri(z):
     return sigmoid(z) * (1 - sigmoid(z))
 
+
 def softmax(z):
-    return np.exp(z)/sum(np.exp(z))
+    return np.exp(z) / sum(np.exp(z))
